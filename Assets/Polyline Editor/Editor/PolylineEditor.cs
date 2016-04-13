@@ -129,9 +129,54 @@ public class PolylineEditor : Editor
     bool CheckAlignment(Vector3[] worldNodes, float offset, int index, ref Vector3 position)
     {
         alignedPoints.Clear();
+        bool aligned = false;
+        //check straight lines
+        //check previous line
+        if (index >= 2)
+        {
+            //represent the line with the equation y=mx+b
+            float dy = worldNodes[index - 1].y - worldNodes[index - 2].y;
+            float dx = worldNodes[index - 1].x - worldNodes[index - 2].x;
+            float m = dy / dx;
+            float b = worldNodes[index - 1].y - m * worldNodes[index - 1].x;
+
+            float newX = (position.x + m * (position.y - b)) / (m * m + 1);
+            float newY = (m * (position.x + m * position.y) + b) / (m * m + 1);
+            Vector3 newPos = new Vector3(newX, newY);
+            float distance = Vector3.Distance(newPos, position);
+            if (distance * distance < offset * offset)
+            {
+                position.x = newX;
+                position.y = newY;
+                aligned = true;
+                alignedPoints.Add(index - 1);
+                alignedPoints.Add(index - 2);
+            }
+        }
+        //check next line
+        if (index < worldNodes.Length - 2)
+        {
+            //represent the line with the equation y=mx+b
+            float dy = worldNodes[index + 1].y - worldNodes[index + 2].y;
+            float dx = worldNodes[index + 1].x - worldNodes[index + 2].x;
+            float m = dy / dx;
+            float b = worldNodes[index + 1].y - m * worldNodes[index + 1].x;
+
+            float newX = (position.x + m * (position.y - b)) / (m * m + 1);
+            float newY = (m * (position.x + m * position.y) + b) / (m * m + 1);
+            Vector3 newPos = new Vector3(newX, newY);
+            float distance = Vector3.Distance(newPos, position);
+            if (distance * distance < offset * offset)
+            {
+                position.x = newX;
+                position.y = newY;
+                aligned = true;
+                alignedPoints.Add(index + 1);
+                alignedPoints.Add(index + 2);
+            }
+        }
         //check vertical
         //check with the prev node
-        bool aligned = false;
         //the node can be aligned to the prev and next node at once, we need to return more than one alginedTo Node
         if (index > 0)
         {
@@ -176,8 +221,7 @@ public class PolylineEditor : Editor
                 aligned = true;
             }
         }
-        //check straight lines
-        //To be implemented
+        
 
         if(aligned)
             alignedPoints.Add(index);
