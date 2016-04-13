@@ -6,6 +6,7 @@ public class PolylineEditor : Editor
 {
     Texture nodeTexture;
     static GUIStyle handleStyle = new GUIStyle();
+    List<int> alignedPoints=new List<int>();
     void OnEnable()
     {
         nodeTexture = Resources.Load<Texture>("Handle");
@@ -93,9 +94,21 @@ public class PolylineEditor : Editor
     private void DrawPolyLine(Vector3[] nodes)
     {
         if (Event.current.shift) Handles.color = Color.green;
-        else if (Event.current.control) Handles.color = Color.red;
+        else if (Event.current.control ) Handles.color = Color.red;
         else Handles.color = Color.white;
-        Handles.DrawPolyLine(nodes);
+        for(int i=0;i<nodes.Length-1;i++)
+        {
+            if(alignedPoints.Contains(i)&&alignedPoints.Contains(i+1))
+            {
+                Color currentColor = Handles.color;
+                Handles.color = Color.green;
+                Handles.DrawLine(nodes[i], nodes[i + 1]);
+                Handles.color = currentColor;
+            }
+            else
+                Handles.DrawLine(nodes[i], nodes[i + 1]);
+
+        }
         Handles.color = Color.white;
     }
     private void DrawNodes(Polyline polyline, Vector3[] worldPoints)
@@ -105,48 +118,28 @@ public class PolylineEditor : Editor
             Vector3 pos = polyline.transform.TransformPoint(polyline.nodes[i]);
             float handleSize = HandleUtility.GetHandleSize(pos);
             Vector3 newPos = Handles.FreeMoveHandle(pos, Quaternion.identity, handleSize * 0.09f, Vector3.one, HandleFunc);
-            List<Vector3> alignTo;
-
-            //if (currentControlID == GUIUtility.hotControl)
-            //{
-            //    if (CheckAlignment(worldPoints, handleSize * 0.1f, i, ref newPos, out alignTo))
-            //    {
-            //        Handles.color = Color.green;
-            //        for (int j = 0; j < alignTo.Count; j++)
-            //            Handles.DrawPolyLine(newPos, alignTo[j]);
-            //        Handles.color = Color.white;
-            //    }
-            //}
             if (newPos != pos)
             {
-                if (CheckAlignment(worldPoints, handleSize * 0.1f, i, ref newPos, out alignTo))
-                {
-                    //coloring does not work, this needs to be fixed
-                    Handles.color = Color.green;
-                    for (int j = 0; j < alignTo.Count; j++)
-                        Handles.DrawPolyLine(newPos, alignTo[j]);
-                    Handles.color = Color.white;
-                }
+                CheckAlignment(worldPoints, handleSize * 0.1f, i, ref newPos);
                 Undo.RecordObject(polyline, "Move Node");
                 polyline.nodes[i] = polyline.transform.InverseTransformPoint(newPos);
             }
         }
     }
-    bool CheckAlignment(Vector3[] worldNodes, float offset, int index, ref Vector3 position, out List<Vector3> alignedTo)
+    bool CheckAlignment(Vector3[] worldNodes, float offset, int index, ref Vector3 position)
     {
-        //Debug.Log("Check aligmnet with index:" + index);
+        alignedPoints.Clear();
         //check vertical
         //check with the prev node
         bool aligned = false;
         //the node can be aligned to the prev and next node at once, we need to return more than one alginedTo Node
-        alignedTo = new List<Vector3>(2);
         if (index > 0)
         {
             float dx = Mathf.Abs(worldNodes[index - 1].x - position.x);
             if (dx < offset)
             {
                 position.x = worldNodes[index - 1].x;
-                alignedTo.Add(worldNodes[index - 1]);
+                alignedPoints.Add(index - 1);
                 aligned = true;
             }
         }
@@ -157,7 +150,7 @@ public class PolylineEditor : Editor
             if (dx < offset)
             {
                 position.x = worldNodes[index + 1].x;
-                alignedTo.Add(worldNodes[index + 1]);
+                alignedPoints.Add(index + 1);
                 aligned = true;
             }
         }
@@ -168,7 +161,7 @@ public class PolylineEditor : Editor
             if (dy < offset)
             {
                 position.y = worldNodes[index - 1].y;
-                alignedTo.Add(worldNodes[index - 1]);
+                alignedPoints.Add(index - 1);
                 aligned = true;
             }
         }
@@ -179,13 +172,15 @@ public class PolylineEditor : Editor
             if (dy < offset)
             {
                 position.y = worldNodes[index + 1].y;
-                alignedTo.Add(worldNodes[index + 1]);
+                alignedPoints.Add(index + 1);
                 aligned = true;
             }
         }
         //check straight lines
         //To be implemented
 
+        if(aligned)
+            alignedPoints.Add(index);
 
         return aligned;
     }
