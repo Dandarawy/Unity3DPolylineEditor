@@ -13,4 +13,4 @@ Check [Wiki](https://github.com/Dandarawy/Unity3DPolylineEditor/wiki) Section.
 
 
 #Asset store
-Coming Soon!
+Download the latest unity package from unity [Asset Store](https://www.assetstore.unity3d.com/#!/content/60300)
