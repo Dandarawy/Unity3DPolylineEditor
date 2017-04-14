@@ -1,6 +1,10 @@
 # Unity3D Polyline Editor
 A simple 2D polyline editor for Unity3D to create a generic polyline.
 
+<p align="center">
+  <img src="https://dl.dropboxusercontent.com/s/irtjx4yluwo7ce3/PreviewWide.png?dl=0">
+</p>
+
 # Features:
 - Works with Unity 4 and Unity 5. 
 - Standard editing (shift to add, control to delete). 
