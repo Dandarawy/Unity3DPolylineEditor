@@ -228,19 +228,42 @@ public class PolylineEditor : Editor
 
         return aligned;
     }
-    void HandleFunc(int controlID, Vector3 position, Quaternion rotation, float size)
+
+    void HandleFunc(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
     {
-        if (controlID == GUIUtility.hotControl)
+        if (eventType == EventType.Layout)
+        {
+            AddControl(controlID, position);
+        }
+        else if (eventType == EventType.Repaint)
+        {
+            if (controlID == GUIUtility.hotControl)
+                GUI.color = Color.red;
+            else
+                GUI.color = Color.green;
+            Handles.Label(position, new GUIContent(nodeTexture), handleStyle);
+            GUI.color = Color.white;
+        }
+    }
+
+    void DeleteHandleFunc(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+    {
+        if (eventType == EventType.Layout)
+        {
+            AddControl(controlID, position);
+        }
+        else if (eventType == EventType.Repaint)
+        {
             GUI.color = Color.red;
-        else
-            GUI.color = Color.green;
-        Handles.Label(position, new GUIContent(nodeTexture), handleStyle);
-        GUI.color = Color.white;
+            Handles.Label(position, new GUIContent(nodeTexture), handleStyle);
+            GUI.color = Color.white;
+        }
     }
-    void DeleteHandleFunc(int controlID, Vector3 position, Quaternion rotation, float size)
+    private static void AddControl(int controlID, Vector3 position)
     {
-        GUI.color = Color.red;
-        Handles.Label(position, new GUIContent(nodeTexture), handleStyle);
-        GUI.color = Color.white;
+        Vector3 mousePos = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition).origin;
+        float distance = Vector2.Distance(position, mousePos);
+        HandleUtility.AddControl(controlID, distance);
     }
+    
 }
